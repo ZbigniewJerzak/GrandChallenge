@@ -276,7 +276,10 @@ ZZZ
 PLEASE ADD ACTUAL DATA HERE
 \end{lstlisting}
 
-Each of the data files is sorted chronologically based on the timestamp ($ts$) attribute.
+Each of the data files is sorted chronologically based on the timestamp ($ts$) attribute. Please note that the logical time of the processing engine is advanced through the timestamps in the respective tuples in the input streams. Specifically, the logical clocks of different queries may be advancing independently from each other. Input tuples with the same time stamp must be processed in the order of arrival.
+
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -290,13 +293,13 @@ Each new post has an initial own score of 10 which decreases by 1 each time anot
 
 \rowcolors{1}{lgray}{llgray}
 \begin{table}[ht]
-	\caption{The set of attributes used in the $likes.dat$ input file}
+	\caption{The output format for the first query.}
 	\centering 
 	\begin{tabular}{r p{5.2cm}}
 		\toprule
 		Attribute		&	 Description\\
 		\midrule
-		ts			&	the timestamp of the tuple event that triggers a change in the top-3 scoring active posts appearing in the rest of the tuple\\[2ex]
+		ts			&	the timestamp of the event that triggers a change in the top-3 scoring active posts appearing in the rest of the tuple\\[2ex]
 		topX\_post\_id	&	the unique id of the top-X post\\[2ex]		
 		topX\_post\_user	& 	 author of top-X post\\[2ex]		
 		topX\_post\_commenters & number of unique users commenting on the top-X post, excluding the post author\\[2ex]
@@ -305,7 +308,13 @@ Each new post has an initial own score of 10 which decreases by 1 each time anot
 	\label{table:query1}
 \end{table}
 
-Results must be sorted by their timestamp ($ts$) field. The character ,,--'' (a minus sign without the quotation marks) should be used for each of the fields (topX\_post\_id, topX\_post\_user, topX\_post\_commenters) of any of the top three positions that has not been defined. The logical time of the query advances based on the timestamps of the input tuples, not the system clock. Listing~\ref{code:query1} shows the example output for the first query. 
+Results must be sorted by their timestamp ($ts$) field. For updates caused by a timeout event, e.g., a post's score dropping every 24 hours, $ts$ is the logical time of the event's generation, plus the logical time duration of the time window. For example, if a comment's expiration should produce some output at logical time 10:00, the logical clock goes past 10:00 only once the first tuple with a later timestamp is processed.
+
+Please note that furthermore, input tuples with the same time stamp must be processed in the order of arrival. For example: if a post $A$ expires at time $X$ and another post $B$ arrives at time $X$, followed by a comment $C$ (for post $A$) arriving at the same time $X$, then the post $A$ will expire. The reason for this is that post $B$ will be processed before comment $C$. Processing of post $B$ will trigger the expiration of the old post $A$. The subsequent comment $C$ (for post $A$) will not have a post $A$ to reference.
+
+Specifically, when processing a new input tuple, processing steps should be performed in this order: (1) decrease the score of all previous posts (given the semantics of the query) (2) increase score of post related to the input tuple, (3) decrease score of posts expiring precisely on this timestamp, if any, and (4) discard posts with score equal to zero. Such a post would, thus, survive the transient state. However, a post whose score reached zaero at a timestamp earlier than the current input tuple, will not survive, even if the processing of that timeout happens to be triggered by the current input tuple. 
+
+The character ,,--'' (a minus sign without the quotation marks) should be used for each of the fields (topX\_post\_id, topX\_post\_user, topX\_post\_commenters) of any of the top three positions that has not been defined. The logical time of the query advances based on the timestamps of the input tuples, not the system clock. Listing~\ref{code:query1} shows the example output for the first query.
 
 \begin{lstlisting}[float=ht,caption={Output example for the three top scoring posts query},label={code:query1}]
 2010-09-19 12:33:01.923+0000,/*@\\@*/  25769805561,Karl Fischer,115,10,/*@\\@*/  25769805933,Chong Liu,83,4,/*@\\@*/  -,-,-,-
@@ -313,35 +322,50 @@ Results must be sorted by their timestamp ($ts$) field. The character ,,--'' (a 
 2010-12-27 22:11:54.953+0000,/*@\\@*/  42949673675,Anson Chen,127,12,/*@\\@*/  42949673684,Yahya Abdallahi,69,8,/*@\\@*/  42949674571,Alim Guliyev,10,0
 \end{lstlisting}
 
+An update to the result stream must be produced whenever any of the top three comments changes. Specifically, if any of the scores changes, but the comments remain the same, no output must be produced. When the end of the input stream is reached (defined as EOF value) all outstanding tuples (in the window) for each query must be processed and results must be output. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Query 2                     %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Community Interest Change Query}
-The goal of profitable areas query is to identify areas that are currently most profitable for taxi drivers. The profitability of an area is determined by dividing the area profit by the number of empty taxis in that area within the last 15 minutes. The profit that originates from an area is computed by calculating the median fare including tip for trips that started in the area and ended within the last 15 minutes. The number of empty taxis in an area is the sum of taxis that had a drop-off location in that area less than 30 minutes ago and had no following pickup yet.
+\section{Community Interest Query}
+\label{sec:query2}
+The second query addresses the change of interests with large communities. This query represents a version of query type 2 from the 2014 SIGMOD Programming contest. Unlike in the SIGMOD problem, the version for the DEBS Grand Challenge focuses on the dynamic change of query results over time, i.e., calls for a continuous evaluation of the results. 
 
-The result stream of the query must list the ten most profitable areas in the format presented in Listing~\ref{code:query2}.
+The goal of the query is given an integer $k$ and a duration $d$ (in seconds), to find the $k$ comments with the largest range. A range of a comment is defined as the size of the largest connected component in the graph defined by:  
+\begin{enumerate}
+		\item users who have liked that comment -- see files $likes.dat$ and $comments.dat$
+		\item the comment was created not more than $d$ seconds ago
+		\item users who liked that comment who know each other -- see $friendships.dat$
+\end{enumerate}	
+Specifically, the size of a component is determined by group members who: (1) all like the comment in question, (2) are all friends with each other, i.e., they form a clique.
 
-\begin{lstlisting}[float=ht,caption={Output format for the profitable areas query},label={code:query2}]
-pickup_datetime
-dropoff_datetime
-profitable_cell_id_1
-empty_taxies_in_cell_id_1
-median_profit_in_cell_id_1
-profitability_of_cell_1
-... 
-profitable_cell_id_10
-empty_taxies_in_cell_id_10
-median_profit_in_cell_id_10
-profitability_of_cell_10
-delay
+The output of the second query includes a single timestamp $ts$ and exactly $k$ strings per line. The timestamp and the strings should be separated by commas. The $k$ strings represent comments, ordered by range from largest to smallest, with ties broken by ascending lexicographical order. The $k$ strings and the corresponding timestamp must be printed only when an input event triggers a change of the output. If less than $k$ strings can be determined, the character ,,--'' (a minus sign without the quotation marks) should be printed in place of each missing string. The output format for the result stream is shown in Table~\ref{table:query2}. 
+
+\rowcolors{1}{lgray}{llgray}
+\begin{table}[ht]
+	\caption{The output format for the second query.}
+	\centering 
+	\begin{tabular}{r p{5.2cm}}
+		\toprule
+		Attribute		&	 Description\\
+		\midrule
+		ts			&	the timestamp of the event that triggers a change in the output\\[2ex]
+		comment\_X	&	top $k$ comments ordered by range\\[2ex]		
+		\bottomrule 
+	\end{tabular}
+	\label{table:query2}
+\end{table}
+
+The field $ts$ corresponds to the timestamp of the input data item that triggered an output update. For instance, a new friendship relation may change the size of a community with a shared interest and hence may change the $k$ strings. The timestamp of the event denoting the added friendship relation is then the timestamp $ts$ for that line's output. Also, the output must be updated when the results change due to the progress of time, e.g., when a comment is older that $d$. Specifically, if the update is triggered by an event leaving a time window at $t2$, i.e., $t2$ $=$ timestamp of the event $+$ window size, the timestamp for the update is $t2$. As in the first query (see Section~\ref{sec:query1}), timestamps refer to the logical time of the input data streams, rather than on the system clock.
+
+Listing~\ref{code:query2} shows the example output for the first query with a $k$ value equal to three. 
+
+\begin{lstlisting}[float=ht,caption={Output example for the community interest query},label={code:query2}]
+2010-10-28T05:01:31.022+0000,/*@\\@*/  I love strawberries,/*@\\@*/  -,/*@\\@*/  -
+2010-10-28T05:01:31.024+0000,/*@\\@*/  I love strawberries,/*@\\@*/  what a day!,/*@\\@*/  -
+2010-10-28T05:01:31.027+0000,/*@\\@*/  I love strawberries,/*@\\@*/  what a day!,/*@\\@*/  well done
+2010-10-28T05:01:31.032+0000,/*@\\@*/  what a day!,/*@\\@*/  I love strawberries,/*@\\@*/  well done
 \end{lstlisting}
-
-with attribute names containing cell\_id\_1 corresponding to the most profitable cell and attribute containing cell\_id\_10 corresponding to the 10$^{th}$ most profitable cell. If less than 10 cells were identified within the last 30 minutes, then NULL is to be returned for all cells that lack data. Query results must be updated whenever any of the 10 most profitable areas change. The pickup\_datetime and dropoff\_datetime in the output are the timestamps of the trip report that triggered the change.
-
-The attribute "delay" captures the time delay between reading the input event that triggered the output and the time when the output is produced. Participants must determine the delay using the current system time right after reading the input and right before writing the output, i.e., including the serialization and deserialization time but excluding the disk IO time. 
-
-Profitable areas query uses the same numbering scheme as for frequent routes query, however it uses a different resolution. In this query one should assume a cell size of 250m X 250m, i.e., the area to be considered spans from cell 1.1 to cell 600.600.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Additional Remarks          %%
@@ -349,7 +373,9 @@ Profitable areas query uses the same numbering scheme as for frequent routes que
 \section{Additional Remarks}
 For both queries it is assumed that the result is calculated in a streaming fashion - i.e.: (1) solutions must not make use of any pre-calculated information, such as indices and (2) result streams must be updated continuously.
 
-The ranking of the submissions is done using the total duration of the execution and the average delay per stream. Specifically, solutions are ranked (a) by the total execution time as well as (b) by the average latency. The final result is calculated as a sum of average results from both query result streams. The average latency should be computed as the average of each output tuple latency, the latter measured as the difference between the system clock taken when logging an output tuple and the system clock taken when the processing of the input tuple triggering the result starts. The final ranking is determined by a score that is the sum of the rank for execution time and the rank for delay. For solutions with the same overall score the solution with the lower execution time will be ranked higher.
+The ranking of the submissions is done using the total duration of the execution and the average delay per stream. Specifically, solutions are ranked (a) by the total execution time as well as (b) by the average latency. The final result is calculated as a sum of average results from both query result streams. The average latency should be computed as the average of each output tuple latency, the latter measured as the difference between the system clock taken when logging an output tuple and the system clock taken when the processing of the input tuple triggering the result starts. The latency measurement always refers to the real time it takes to process a single input tuple. Even when an input tuple triggers an update caused by the timeout of some event, it is the present input tuple's latency that should be measured, which has nothing to do with the logical or real time elapsed since the past event that just timed out.
+
+The final ranking is determined by a score that is the sum of the rank for execution time and the rank for delay. For solutions with the same overall score the solution with the lower execution time will be ranked higher.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% License                     %%
