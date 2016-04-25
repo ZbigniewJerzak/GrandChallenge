@@ -1,0 +1,283 @@
+\documentclass{sig-alternate}
+
+\usepackage{color}
+\usepackage{subfigure}
+\usepackage{booktabs}
+\usepackage{ifpdf}
+\usepackage{graphicx}
+\usepackage[table]{xcolor}
+\usepackage{microtype}
+
+\clubpenalty=10000
+\widowpenalty=10000
+
+\setlength{\paperheight}{11in}
+\setlength{\paperwidth}{8.5in}
+\usepackage[
+pass,% keep layout unchanged 
+% showframe,% show the layout
+]{geometry}
+
+\usepackage{listings}
+\lstset{	basicstyle=\small, 
+			numbers=left, 
+			xleftmargin=2em,
+			frame=none,
+			framexleftmargin=1.5em,
+			numberstyle=\tiny, 
+			tabsize=3, 
+			language={Java}, 
+			showstringspaces=false,
+			commentstyle=\color[cmyk]{0.3,0.3,0.3,0.3},
+			stringstyle=\color[cmyk]{0.92,0,0.95,0.40},
+			keywordstyle=\color{blue}\bfseries,
+			showspaces=false, 
+			showtabs=false}
+
+
+\newcommand{\TITLE}{The DEBS 2016 Grand Challenge}
+\newcommand{\KEYWORDS}{event processing, streaming, utilities, geo-spatial}
+\newcommand{\VG}{Vincenzo Gulisano}
+\newcommand{\VGEMAIL}{vincenzo.gulisano@chalmers.se}
+\newcommand{\ZJ}{Zbigniew Jerzak}
+\newcommand{\ZJEMAIL}{zbigniew.jerzak@sap.com}
+\newcommand{\SV}{Spyros Voulgaris}
+\newcommand{\SVEMAIL}{spyros@cs.vu.nl}
+\newcommand{\HZ}{Holger Ziekow}
+\newcommand{\HZEMAIL}{zie@hs-furtwangen.de}
+
+
+\newcommand{\VGADDR}[1]{	\affaddr{Chalmers University of Technology}\\%
+							\affaddr{Hörsalsvägen 11}\\%	
+							\affaddr{41296 Gothenburg, Sweden}\\%
+							\email{#1}}							
+\newcommand{\ZJADDR}[1]{	\affaddr{SAP SE}\\%
+							\affaddr{Rosenthaler Str. 30}\\%
+							\affaddr{10178 Berlin, Germany}\\%
+							\email{#1}}
+\newcommand{\SVADDR}[1]{	\affaddr{Vrije Universiteit Amsterdam}\\%
+							\affaddr{De Boelelaan 1081A}\\%	
+							\affaddr{1081HV Amsterdam, The Netherlands}\\%
+							\email{#1}}							
+\newcommand{\HZADDR}[1]{	\affaddr{Hochschule Furtwangen}\\%
+							\affaddr{Robert-Gerwig-Platz 1}\\%	
+							\affaddr{78120 Furtwangen, Germany}\\%
+							\email{#1}}							
+
+\ifpdf
+	\usepackage[pdftex,%
+					plainpages=false,%
+					pdfpagelabels=false,
+					bookmarksnumbered,%
+					colorlinks=true,%
+					linkcolor=blue,%
+					citecolor=blue,%
+					unicode=true]{hyperref} 
+	\usepackage{pdfpages}
+	\usepackage[all]{hypcap}
+	\hypersetup{%
+		pdftitle={\TITLE},
+		pdfauthor={\VG, \ZJ, \SV, \HZ},
+		pdfsubject={\TITLE},
+		pdfkeywords={\KEYWORDS},
+		bookmarksopen=false,
+		unicode=true,
+		colorlinks=true,
+		hypertexnames=false}
+\else
+	\usepackage[dvipdfm,%
+					pdftitle={\TITLE},
+					pdfauthor={\VG, \ZJ, \SV, \HZ},
+					pdfsubject={\TITLE},
+					pdfkeywords={\KEYWORDS},
+					bookmarks=true,%
+					pdfpagelabels=false,%
+					colorlinks=true,%
+					linkcolor=blue,%
+					citecolor=blue]{hyperref}
+\fi
+
+\begin{document}
+	
+  \newfont{\mycrnotice}{ptmr8t at 7pt}
+  \newfont{\myconfname}{ptmri8t at 7pt}
+  \let\crnotice\mycrnotice%
+  \let\confname\myconfname%
+  
+  \permission{Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than ACM must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from Permissions@acm.org.}
+  \conferenceinfo{DEBS'15,} {June 29 -- July 3, 2015, OSLO, Norway.}
+  \copyrightetc{Copyright 2015 ACM \the\acmcopyr}
+  \crdata{978-1-4503-3286-6/15/06...\$15.00.\\ http://dx.doi.org/10.1145/2675743.2772598}
+
+\title{\TITLE}
+
+\numberofauthors{4}
+\author{
+\alignauthor	\VG\\
+					\VGADDR{\VGEMAIL}
+\alignauthor	\ZJ\\
+					\ZJADDR{\ZJEMAIL}
+\alignauthor	\SV\\
+					\SVADDR{\SVEMAIL}
+\and
+\alignauthor	\HZ\\
+					\HZADDR{\HZEMAIL}
+}
+
+\date{\today}
+\maketitle
+
+\begin{abstract}
+Pending...
+\end{abstract}
+
+
+\category{C.2.4}{Computer-Communication Networks}{Distributed Systems}[Distributed Applications]
+\terms{Algorithms, Design}
+\keywords{\KEYWORDS} 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Intro                       %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+\label{sec:introduction}
+The ACM DEBS 2015 Grand Challenge is the sixth in a series~\cite{jerzak2012debs, mutschler2013debs, jerzak2014debs, jerzak2015debs} of challenges which seek to provide a common ground and uniform evaluation criteria for a competition aimed at both research and industrial event-based systems. The goal of the 2016 DEBS Grand Challenge competition is to evaluate event-based systems for real-time analytics over high volume data streams in the context of graph models.
+
+The underlying scenario addresses the analysis metrics for a dynamic (evolving) social-network graph. Specifically, the 2016 Grand Challenge targets following problems: (1) identification of the posts that currently trigger the most activity in the social network, and (2) identification of large communities that are currently involved in a topic. The corresponding queries require continuous analysis of a dynamic graph under the consideration of multiple streams that reflect updates to the graph.
+
+The data for the DEBS 2016 Grand Challenge is based on the dataset provided together with the LDBC Social Network Benchmark~\cite{erling2015social}. DEBS 2016 Grand Challenge takes up the general scenario from the 2014 SIGMOD Programming Contest~\cite{DBLP:conf/sigmod/2014}, however, in contrasts to the SIGMOD contest, it explicitly focuses on processing streaming data and thus dynamic graphs. Details about the data, queries for the Grand Challenge, and information about evaluation are provided below.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Data                       %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Data}
+\label{sec:data}
+The data for the 2015 Grand Challenge is based on a data set released under the Freedom of Information Law and has been made publicly available by Chris Whong\footnote{\url{http://chriswhong.com/open-data/foil_nyc_taxi/}} in March 2014.
+
+Provided data consists of reports of taxi trips including starting point, drop-off point, corresponding timestamps, and information related to the payment. Data are reported at the end of the trip, i.e., upon arrive in the order of the drop-off timestamps.
+The specific attributes are listed in the Table~\ref{table:attr}. Listing~\ref{code:line} shows the first line of the data file.
+
+\definecolor{lgray}{gray}{0.94}
+\definecolor{llgray}{gray}{0.99}
+
+\rowcolors{1}{lgray}{llgray}
+\begin{table}[ht]
+	\caption{The set of attributes used in the input file}
+	\centering 
+	\begin{tabular}{r p{5.2cm}}
+		\toprule
+		Attribute		&	 Description\\
+		\midrule
+		medallion			&	128-bit MD5 hash of the identifier of the taxi (vehicle bound)\\[2ex]
+		hack\_license		&	128-bit MD5 hash of the identifier of the license (driver bound)\\[2ex]
+		pickup\_datetime		&	time when the passenger(s) were picked up\\[2ex]
+		dropoff\_datetime	&  	time when the passenger(s) were dropped off\\[2ex]
+		trip\_time\_in\_secs	&	duration of the trip in seconds\\[2ex]
+		trip\_distance		&		trip distance in miles\\[2ex]
+		pickup\_longitude	&	longitude of the pickup location\\[2ex]
+		pickup\_latitude	&	latitude of the pickup location\\[2ex]
+		dropoff\_longitude	&	longitude of the drop-off location\\[2ex]
+		dropoff\_latitude	&	latitude of the drop-off location\\[2ex]
+		payment\_type	&	the payment method -- card or cash\\[2ex]
+		fare\_amount	&	fare amount in dollars\\[2ex]
+		surcharge	&	surcharge in dollars\\[2ex]
+		mta\_tax	&	tax in dollars\\[2ex]
+		tip\_amount	&	tip in dollars\\[2ex]
+		tolls\_amount	&	bridge and tunnel tolls in dollars\\[2ex]
+		total\_amount	&	total paid amount in dollars\\
+		
+		\bottomrule 
+	\end{tabular}
+	\label{table:attr}
+\end{table}
+
+\lstset{}
+\begin{lstlisting}[float=ht,caption={First line from data file -- one attribute per line of listing},label={code:line}]
+07290D3599E7A0D62097A346EFCC1FB5
+E7750A37CAB07D0DFF0AF7E3573AC141
+2013-01-01 00:00:00
+2013-01-01 00:02:00
+120
+0.44
+-73.956528
+40.716976
+-73.962440
+40.715008
+CSH
+3.50
+0.50
+0.50
+0.00
+0.00
+4.50
+\end{lstlisting}	
+
+
+The data file is sorted chronologically according to the dropoff\_datetime. Events with the same dropoff\_datetime are in random order. Quality of the data is not perfect. Some events might miss information such as drop off and pickup coordinates or fare information. Moreover, some information, such as, e.g., the fare price might have been entered incorrectly by the taxi drivers thus introducing additional skew.
+
+Please follow this link (\url{http://bit.ly/1A0RmGL}) to access the data file comprising the first twenty days (roughly 2 million events) of data. The file is approximately 130 MB in size. Please follow this link (\url{http://bit.ly/1RFWuFP}) to access the full data file containing data for the whole year 2013. The file is 12 GB in size and contains approximately 173 million events.
+
+\section{Frequent Routes Query}
+The goal of the frequent routes query is to find the top ten most frequent routes during the last 30 minutes. A route is represented by a starting grid cell and an ending grid cell. All routes completed within the last 30 minutes are considered for the query. The output query results must be updated whenever any of the 10 most frequent routes changes. The output format for the result stream is shown in Listing~\ref{code:query1}.
+
+\begin{lstlisting}[float=ht,caption={Output format for the frequent routes query},label={code:query1}]
+pickup_datetime 
+dropoff_datetime 
+start_cell_id_1 
+end_cell_id_1
+...
+start_cell_id_10 
+end_cell_id_10 
+delay
+\end{lstlisting}
+
+Where pickup\_datetime, dropoff\_datetime are the timestamps of the trip report that resulted in an update of the result stream, start\_cell\_id\_X the starting cell of the X$^{th}$-most frequent route, end\_cell\_id\_X the ending cell of the X$^{th}$-most frequent route. If less than 10 routes can be identified within the last 30 minutes, then NULL is to be output for all routes that lack data.
+
+The attribute "delay" captures the time delay between reading the input event that triggered the output and the time when the output is produced. Participants must determine the delay using the current system time right after reading the input and right before writing the output. This attribute will be used in the evaluation of the submission.
+
+The cells for this query are squares of 500 meters by 500 meters. The cell grid starts with cell 1.1, located at 41.474937, -74.913585 in Barryville. The coordinate 41.474937, -74.913585 marks the center of the first cell. Cell numbers increase towards the east and south, with the shift to east being the first and the shift to south the second component of the cell, i.e., cell 3.7 is 2 cells east and 6 cells south of cell 1.1. The overall grid expands 150km south and 150km east from cell 1.1 with the cell 300.300 being the last cell in the grid. All trips starting or ending outside this area are treated as outliers and must not be considered in the computation.
+\section{Profitable Areas Query}
+The goal of profitable areas query is to identify areas that are currently most profitable for taxi drivers. The profitability of an area is determined by dividing the area profit by the number of empty taxis in that area within the last 15 minutes. The profit that originates from an area is computed by calculating the median fare including tip for trips that started in the area and ended within the last 15 minutes. The number of empty taxis in an area is the sum of taxis that had a drop-off location in that area less than 30 minutes ago and had no following pickup yet.
+
+The result stream of the query must list the ten most profitable areas in the format presented in Listing~\ref{code:query2}.
+
+\begin{lstlisting}[float=ht,caption={Output format for the profitable areas query},label={code:query2}]
+pickup_datetime
+dropoff_datetime
+profitable_cell_id_1
+empty_taxies_in_cell_id_1
+median_profit_in_cell_id_1
+profitability_of_cell_1
+... 
+profitable_cell_id_10
+empty_taxies_in_cell_id_10
+median_profit_in_cell_id_10
+profitability_of_cell_10
+delay
+\end{lstlisting}
+
+with attribute names containing cell\_id\_1 corresponding to the most profitable cell and attribute containing cell\_id\_10 corresponding to the 10$^{th}$ most profitable cell. If less than 10 cells were identified within the last 30 minutes, then NULL is to be returned for all cells that lack data. Query results must be updated whenever any of the 10 most profitable areas change. The pickup\_datetime and dropoff\_datetime in the output are the timestamps of the trip report that triggered the change.
+
+The attribute "delay" captures the time delay between reading the input event that triggered the output and the time when the output is produced. Participants must determine the delay using the current system time right after reading the input and right before writing the output, i.e., including the serialization and deserialization time but excluding the disk IO time. 
+
+Profitable areas query uses the same numbering scheme as for frequent routes query, however it uses a different resolution. In this query one should assume a cell size of 250m X 250m, i.e., the area to be considered spans from cell 1.1 to cell 600.600.
+
+\section{Additional Remarks}
+For the challenge we assume a simplified flat earth model for mapping of coordinates to cells in the queries -- see Section~\ref{sec:data}. It can be assumed that a distance of 500 meter south corresponds to a change of 0.004491556 degrees in the coordinate system. For moving 500 meters east one can assume a change of 0.005986 degrees in the coordinate system.
+
+\section{Discussion of Challenges}
+The queries of the DEBS 2015 Grand Challenge were designed along the problem of processing of spatio-temporal data in an event-driven manner~\cite{peuquet1995event, mamoulis2004mining, mokbel2004sina}.  Both queries use geo-spatial grids to define the events of interest. Both grids have high resolution resulting in potentially high complexity for the query evaluation. For the first query, one must keep track of routes between grid cells to identify the current most frequent routes. For the seconds query, one must keep track of taxis that are assumed to be in a given grid cell to determine the cell profitability. Both queries rely on a sliding window operator, causing the need to continuously evaluate the query results.
+
+Additional technical challenge for both queries is the online computation of a top-k list~\cite{ilyas2008survey}. Query specification requires, that results must be updated only when the top-k results (most frequent routes or profitable cells) change. This poses the challenge to efficiently maintain a top-k list over a long list of continuously changing values, i.e., route frequency and profitability.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% References                  %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{plain}
+\bibliography{debsgc2015}
+
+%\balancecolumns
+
+\end{document}
