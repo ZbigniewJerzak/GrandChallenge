@@ -19,7 +19,7 @@ pass,% keep layout unchanged
 ]{geometry}
 
 \usepackage{listings}
-\lstset{	basicstyle=\small, 
+\lstset{	basicstyle=\normalsize, 
 			numbers=left, 
 			xleftmargin=2em,
 			frame=none,
@@ -27,6 +27,7 @@ pass,% keep layout unchanged
 			numberstyle=\tiny, 
 			tabsize=3, 
 			language={Java}, 
+			escapeinside={/*@}{@*/},
 			showstringspaces=false,
 			commentstyle=\color[cmyk]{0.3,0.3,0.3,0.3},
 			stringstyle=\color[cmyk]{0.92,0,0.95,0.40},
@@ -247,37 +248,76 @@ ZZZ
 PLEASE ADD ACTUAL DATA HERE
 \end{lstlisting}
 
+The fourth input stream indicates when a users likes a comment -- see Table~\ref{table:like} and Listing~\ref{code:like}. The fourth input stream file name is $likes.dat$.
+
+\rowcolors{1}{lgray}{llgray}
+\begin{table}[ht]
+	\caption{The set of attributes used in the $likes.dat$ input file}
+	\centering 
+	\begin{tabular}{r p{5.2cm}}
+		\toprule
+		Attribute		&	 Description\\
+		\midrule
+		ts			&	timestamp indicating when user liked a comment\\[2ex]
+		user\_id	&	unique id of the user who liked the comment\\[2ex]		
+		comment\_id	& 	unique id of the comment that was liked\\[2ex]		
+		\bottomrule 
+	\end{tabular}
+	\label{table:like}
+\end{table}
+
+
+
+\lstset{}
+\begin{lstlisting}[float=ht,caption={First line from the $comments.dat$ file -- one attribute per line of listing},label={code:like}]
+XXX
+YYY
+ZZZ
+PLEASE ADD ACTUAL DATA HERE
+\end{lstlisting}
+
 Each of the data files is sorted chronologically based on the timestamp ($ts$) attribute.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Query 1                     %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Frequent Routes Query}
-The goal of the frequent routes query is to find the top ten most frequent routes during the last 30 minutes. A route is represented by a starting grid cell and an ending grid cell. All routes completed within the last 30 minutes are considered for the query. The output query results must be updated whenever any of the 10 most frequent routes changes. The output format for the result stream is shown in Listing~\ref{code:query1}.
+\section{Three Top Scoring Posts Query}
+\label{sec:query1}
+The goal of the first query is to compute the top three scoring active posts, producing an updated result every time the list changes. The total score of an active post $P$ is computed as the sum of its own score plus the score of all its related comments. Active posts having the same total score should be ranked based on their timestamps -- in descending order. And if their timestamps are also identical, they should be ranked based on the timestamps of their last received related comments -- in descending order. A comment $C$ is related to a post $P$ if it is a direct reply to $P$ or if the chain of $C$'s preceding messages links back to $P$.
 
-\begin{lstlisting}[float=ht,caption={Output format for the frequent routes query},label={code:query1}]
-pickup_datetime 
-dropoff_datetime 
-start_cell_id_1 
-end_cell_id_1
-...
-start_cell_id_10 
-end_cell_id_10 
-delay
+Each new post has an initial own score of 10 which decreases by 1 each time another 24 hours elapse since the post's creation. Each new comment's score is also initially set to 10 and decreases by 1 in the same way, i.e., every 24 hours since the comment's creation. Both post and comment scores are non-negative numbers, that is, they cannot drop below zero. A post is considered no longer active (that is, no longer part of the present and future analysis) as soon as its total score reaches zero, even if it receives additional comments in the future. The output format for the result stream is shown in Table~\ref{table:query1}. 
+
+\rowcolors{1}{lgray}{llgray}
+\begin{table}[ht]
+	\caption{The set of attributes used in the $likes.dat$ input file}
+	\centering 
+	\begin{tabular}{r p{5.2cm}}
+		\toprule
+		Attribute		&	 Description\\
+		\midrule
+		ts			&	the timestamp of the tuple event that triggers a change in the top-3 scoring active posts appearing in the rest of the tuple\\[2ex]
+		topX\_post\_id	&	the unique id of the top-X post\\[2ex]		
+		topX\_post\_user	& 	 author of top-X post\\[2ex]		
+		topX\_post\_commenters & number of unique users commenting on the top-X post, excluding the post author\\[2ex]
+		\bottomrule 
+	\end{tabular}
+	\label{table:query1}
+\end{table}
+
+Results must be sorted by their timestamp ($ts$) field. The character ,,--'' (a minus sign without the quotation marks) should be used for each of the fields (topX\_post\_id, topX\_post\_user, topX\_post\_commenters) of any of the top three positions that has not been defined. The logical time of the query advances based on the timestamps of the input tuples, not the system clock. Listing~\ref{code:query1} shows the example output for the first query. 
+
+\begin{lstlisting}[float=ht,caption={Output example for the three top scoring posts query},label={code:query1}]
+2010-09-19 12:33:01.923+0000,/*@\\@*/  25769805561,Karl Fischer,115,10,/*@\\@*/  25769805933,Chong Liu,83,4,/*@\\@*/  -,-,-,-
+2010-10-09 21:55:24.943+0000,/*@\\@*/  34359739095,Karl Fischer,58,7,/*@\\@*/  34359740594,Paul Becker,40,2,/*@\\@*/  34359740220,Chong Zhang,10,0
+2010-12-27 22:11:54.953+0000,/*@\\@*/  42949673675,Anson Chen,127,12,/*@\\@*/  42949673684,Yahya Abdallahi,69,8,/*@\\@*/  42949674571,Alim Guliyev,10,0
 \end{lstlisting}
 
-Where pickup\_datetime, dropoff\_datetime are the timestamps of the trip report that resulted in an update of the result stream, start\_cell\_id\_X the starting cell of the X$^{th}$-most frequent route, end\_cell\_id\_X the ending cell of the X$^{th}$-most frequent route. If less than 10 routes can be identified within the last 30 minutes, then NULL is to be output for all routes that lack data.
-
-The attribute "delay" captures the time delay between reading the input event that triggered the output and the time when the output is produced. Participants must determine the delay using the current system time right after reading the input and right before writing the output. This attribute will be used in the evaluation of the submission.
-
-The cells for this query are squares of 500 meters by 500 meters. The cell grid starts with cell 1.1, located at 41.474937, -74.913585 in Barryville. The coordinate 41.474937, -74.913585 marks the center of the first cell. Cell numbers increase towards the east and south, with the shift to east being the first and the shift to south the second component of the cell, i.e., cell 3.7 is 2 cells east and 6 cells south of cell 1.1. The overall grid expands 150km south and 150km east from cell 1.1 with the cell 300.300 being the last cell in the grid. All trips starting or ending outside this area are treated as outliers and must not be considered in the computation.
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Query 1                     %%
+%% Query 2                     %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Profitable Areas Query}
+\section{Community Interest Change Query}
 The goal of profitable areas query is to identify areas that are currently most profitable for taxi drivers. The profitability of an area is determined by dividing the area profit by the number of empty taxis in that area within the last 15 minutes. The profit that originates from an area is computed by calculating the median fare including tip for trips that started in the area and ended within the last 15 minutes. The number of empty taxis in an area is the sum of taxis that had a drop-off location in that area less than 30 minutes ago and had no following pickup yet.
 
 The result stream of the query must list the ten most profitable areas in the format presented in Listing~\ref{code:query2}.
@@ -307,6 +347,9 @@ Profitable areas query uses the same numbering scheme as for frequent routes que
 %% Additional Remarks          %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Additional Remarks}
+For both queries it is assumed that the result is calculated in a streaming fashion - i.e.: (1) solutions must not make use of any pre-calculated information, such as indices and (2) result streams must be updated continuously.
+
+The ranking of the submissions is done using the total duration of the execution and the average delay per stream. Specifically, solutions are ranked (a) by the total execution time as well as (b) by the average latency. The final result is calculated as a sum of average results from both query result streams. The average latency should be computed as the average of each output tuple latency, the latter measured as the difference between the system clock taken when logging an output tuple and the system clock taken when the processing of the input tuple triggering the result starts. The final ranking is determined by a score that is the sum of the rank for execution time and the rank for delay. For solutions with the same overall score the solution with the lower execution time will be ranked higher.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% License                     %%
