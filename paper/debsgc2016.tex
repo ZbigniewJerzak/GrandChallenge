@@ -38,21 +38,21 @@ pass,% keep layout unchanged
 \newcommand{\TITLE}{The DEBS 2016 Grand Challenge}
 \newcommand{\KEYWORDS}{event processing, streaming, utilities, geo-spatial}
 \newcommand{\VG}{Vincenzo Gulisano}
-\newcommand{\VGEMAIL}{vincenzo.gulisano@chalmers.se}
+\newcommand{\VGEMAIL}{{\normalsize vincenzo.gulisano@chalmers.se}}
 \newcommand{\ZJ}{Zbigniew Jerzak}
-\newcommand{\ZJEMAIL}{zbigniew.jerzak@sap.com}
+\newcommand{\ZJEMAIL}{{\normalsize zbigniew.jerzak@sap.com}}
 \newcommand{\SV}{Spyros Voulgaris}
-\newcommand{\SVEMAIL}{spyros@cs.vu.nl}
+\newcommand{\SVEMAIL}{{\normalsize spyros@cs.vu.nl}}
 \newcommand{\HZ}{Holger Ziekow}
-\newcommand{\HZEMAIL}{zie@hs-furtwangen.de}
+\newcommand{\HZEMAIL}{{\normalsize zie@hs-furtwangen.de}}
 
 
 \newcommand{\VGADDR}[1]{	\affaddr{Chalmers University of Technology}\\%
-							\affaddr{Hörsalsvägen 11}\\%	
+							\affaddr{H\"{o}rsalsv\"{a}gen 11}\\%	
 							\affaddr{41296 Gothenburg, Sweden}\\%
 							\email{#1}}							
 \newcommand{\ZJADDR}[1]{	\affaddr{SAP SE}\\%
-							\affaddr{Rosenthaler Str. 30}\\%
+							\affaddr{M\"{u}nzstra{\ss}e 15}\\%
 							\affaddr{10178 Berlin, Germany}\\%
 							\email{#1}}
 \newcommand{\SVADDR}[1]{	\affaddr{Vrije Universiteit Amsterdam}\\%
@@ -143,7 +143,7 @@ Pending...
 
 \section{Introduction}
 \label{sec:introduction}
-The ACM DEBS 2015 Grand Challenge is the sixth in a series~\cite{jerzak2012debs, mutschler2013debs, jerzak2014debs, jerzak2015debs} of challenges which seek to provide a common ground and uniform evaluation criteria for a competition aimed at both research and industrial event-based systems. The goal of the 2016 DEBS Grand Challenge competition is to evaluate event-based systems for real-time analytics over high volume data streams in the context of graph models.
+The ACM DEBS 2016 Grand Challenge is the sixth in a series~\cite{jerzak2012debs, mutschler2013debs, jerzak2014debs, jerzak2015debs} of challenges which seek to provide a common ground and uniform evaluation criteria for a competition aimed at both research and industrial event-based systems. The goal of the 2016 DEBS Grand Challenge competition is to evaluate event-based systems for real-time analytics over high volume data streams in the context of graph models.
 
 The underlying scenario addresses the analysis metrics for a dynamic (evolving) social-network graph. Specifically, the 2016 Grand Challenge targets following problems: (1) identification of the posts that currently trigger the most activity in the social network, and (2) identification of large communities that are currently involved in a topic. The corresponding queries require continuous analysis of a dynamic graph under the consideration of multiple streams that reflect updates to the graph.
 
@@ -154,71 +154,105 @@ The data for the DEBS 2016 Grand Challenge is based on the dataset provided toge
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Data}
 \label{sec:data}
-The data for the 2015 Grand Challenge is based on a data set released under the Freedom of Information Law and has been made publicly available by Chris Whong\footnote{\url{http://chriswhong.com/open-data/foil_nyc_taxi/}} in March 2014.
-
-Provided data consists of reports of taxi trips including starting point, drop-off point, corresponding timestamps, and information related to the payment. Data are reported at the end of the trip, i.e., upon arrive in the order of the drop-off timestamps.
-The specific attributes are listed in the Table~\ref{table:attr}. Listing~\ref{code:line} shows the first line of the data file.
+The data for the 2016 Grand Challenge is organized in four separate streams, each provided as a text file. The first input stream indicates when two users enter a "friendship" relationship -- see Table~\ref{table:friend} and Listing~\ref{code:friend}. The first input stream file name is $friendships.dat$.
 
 \definecolor{lgray}{gray}{0.94}
 \definecolor{llgray}{gray}{0.99}
 
 \rowcolors{1}{lgray}{llgray}
 \begin{table}[ht]
-	\caption{The set of attributes used in the input file}
+	\caption{The set of attributes used in the $friendships.dat$ input file}
 	\centering 
 	\begin{tabular}{r p{5.2cm}}
 		\toprule
 		Attribute		&	 Description\\
 		\midrule
-		medallion			&	128-bit MD5 hash of the identifier of the taxi (vehicle bound)\\[2ex]
-		hack\_license		&	128-bit MD5 hash of the identifier of the license (driver bound)\\[2ex]
-		pickup\_datetime		&	time when the passenger(s) were picked up\\[2ex]
-		dropoff\_datetime	&  	time when the passenger(s) were dropped off\\[2ex]
-		trip\_time\_in\_secs	&	duration of the trip in seconds\\[2ex]
-		trip\_distance		&		trip distance in miles\\[2ex]
-		pickup\_longitude	&	longitude of the pickup location\\[2ex]
-		pickup\_latitude	&	latitude of the pickup location\\[2ex]
-		dropoff\_longitude	&	longitude of the drop-off location\\[2ex]
-		dropoff\_latitude	&	latitude of the drop-off location\\[2ex]
-		payment\_type	&	the payment method -- card or cash\\[2ex]
-		fare\_amount	&	fare amount in dollars\\[2ex]
-		surcharge	&	surcharge in dollars\\[2ex]
-		mta\_tax	&	tax in dollars\\[2ex]
-		tip\_amount	&	tip in dollars\\[2ex]
-		tolls\_amount	&	bridge and tunnel tolls in dollars\\[2ex]
-		total\_amount	&	total paid amount in dollars\\
-		
+		ts			&	timestamp indicating when a friendship was established\\[2ex]
+		user\_id\_1	&	id of one of the users\\[2ex]
+		user\_id\_2	&	id of the other user\\[2ex]		
 		\bottomrule 
 	\end{tabular}
-	\label{table:attr}
+	\label{table:friend}
 \end{table}
 
+
+
 \lstset{}
-\begin{lstlisting}[float=ht,caption={First line from data file -- one attribute per line of listing},label={code:line}]
-07290D3599E7A0D62097A346EFCC1FB5
-E7750A37CAB07D0DFF0AF7E3573AC141
-2013-01-01 00:00:00
-2013-01-01 00:02:00
-120
-0.44
--73.956528
-40.716976
--73.962440
-40.715008
-CSH
-3.50
-0.50
-0.50
-0.00
-0.00
-4.50
+\begin{lstlisting}[float=ht,caption={First line from the $friendships.dat$ file -- one attribute per line of listing},label={code:friend}]
+XXX
+YYY
+ZZZ
+PLEASE ADD ACTUAL DATA HERE
 \end{lstlisting}	
 
+The second input stream indicates when a users creates a new post -- see Table~\ref{table:post} and Listing~\ref{code:post}. The second input stream file name is $posts.dat$.
 
-The data file is sorted chronologically according to the dropoff\_datetime. Events with the same dropoff\_datetime are in random order. Quality of the data is not perfect. Some events might miss information such as drop off and pickup coordinates or fare information. Moreover, some information, such as, e.g., the fare price might have been entered incorrectly by the taxi drivers thus introducing additional skew.
+\rowcolors{1}{lgray}{llgray}
+\begin{table}[ht]
+	\caption{The set of attributes used in the $posts.dat$ input file}
+	\centering 
+	\begin{tabular}{r p{5.2cm}}
+		\toprule
+		Attribute		&	 Description\\
+		\midrule
+		ts			&	timestamp indicating when a post was created\\[2ex]
+		post\_id	&	unique id of the post\\[2ex]
+		user\_id	&	unique id of the user who created the post\\[2ex]		
+		post		& 	string containing the post's content\\[2ex]		
+		user		&   string containing the user name of the post creator\\[2ex]
+		\bottomrule 
+	\end{tabular}
+	\label{table:post}
+\end{table}
 
-Please follow this link (\url{http://bit.ly/1A0RmGL}) to access the data file comprising the first twenty days (roughly 2 million events) of data. The file is approximately 130 MB in size. Please follow this link (\url{http://bit.ly/1RFWuFP}) to access the full data file containing data for the whole year 2013. The file is 12 GB in size and contains approximately 173 million events.
 
+
+\lstset{}
+\begin{lstlisting}[float=ht,caption={First line from the $posts.dat$ file -- one attribute per line of listing},label={code:post}]
+XXX
+YYY
+ZZZ
+PLEASE ADD ACTUAL DATA HERE
+\end{lstlisting}
+
+The third input stream indicates when a users commnets on a post -- see Table~\ref{table:comment} and Listing~\ref{code:comment}. The third input stream file name is $comments.dat$.
+
+\rowcolors{1}{lgray}{llgray}
+\begin{table}[ht]
+	\caption{The set of attributes used in the $comments.dat$ input file}
+	\centering 
+	\begin{tabular}{r p{5.2cm}}
+		\toprule
+		Attribute		&	 Description\\
+		\midrule
+		ts			&	timestamp indicating when a comment was created\\[2ex]
+		comment\_id	&	unique id of the comment\\[2ex]
+		user\_id	&	unique id of the user who created the comment\\[2ex]		
+		comment		& 	string containing the comment's content\\[2ex]		
+		user		&   string containing the user name of the comment creator\\[2ex]
+		comment\_replied		&   id of the comment being commented (-1 if this is a comment to a post)\\[2ex]
+		post\_commented		&   id of the post being commented (-1 if this is a comment to a comment)\\[2ex]
+		\bottomrule 
+	\end{tabular}
+	\label{table:comment}
+\end{table}
+
+
+
+\lstset{}
+\begin{lstlisting}[float=ht,caption={First line from the $comments.dat$ file -- one attribute per line of listing},label={code:comment}]
+XXX
+YYY
+ZZZ
+PLEASE ADD ACTUAL DATA HERE
+\end{lstlisting}
+
+Each of the data files is sorted chronologically based on the timestamp ($ts$) attribute.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Query 1                     %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Frequent Routes Query}
 The goal of the frequent routes query is to find the top ten most frequent routes during the last 30 minutes. A route is represented by a starting grid cell and an ending grid cell. All routes completed within the last 30 minutes are considered for the query. The output query results must be updated whenever any of the 10 most frequent routes changes. The output format for the result stream is shown in Listing~\ref{code:query1}.
 
@@ -238,6 +272,11 @@ Where pickup\_datetime, dropoff\_datetime are the timestamps of the trip report 
 The attribute "delay" captures the time delay between reading the input event that triggered the output and the time when the output is produced. Participants must determine the delay using the current system time right after reading the input and right before writing the output. This attribute will be used in the evaluation of the submission.
 
 The cells for this query are squares of 500 meters by 500 meters. The cell grid starts with cell 1.1, located at 41.474937, -74.913585 in Barryville. The coordinate 41.474937, -74.913585 marks the center of the first cell. Cell numbers increase towards the east and south, with the shift to east being the first and the shift to south the second component of the cell, i.e., cell 3.7 is 2 cells east and 6 cells south of cell 1.1. The overall grid expands 150km south and 150km east from cell 1.1 with the cell 300.300 being the last cell in the grid. All trips starting or ending outside this area are treated as outliers and must not be considered in the computation.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Query 1                     %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Profitable Areas Query}
 The goal of profitable areas query is to identify areas that are currently most profitable for taxi drivers. The profitability of an area is determined by dividing the area profit by the number of empty taxis in that area within the last 15 minutes. The profit that originates from an area is computed by calculating the median fare including tip for trips that started in the area and ended within the last 15 minutes. The number of empty taxis in an area is the sum of taxis that had a drop-off location in that area less than 30 minutes ago and had no following pickup yet.
 
@@ -264,19 +303,28 @@ The attribute "delay" captures the time delay between reading the input event th
 
 Profitable areas query uses the same numbering scheme as for frequent routes query, however it uses a different resolution. In this query one should assume a cell size of 250m X 250m, i.e., the area to be considered spans from cell 1.1 to cell 600.600.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Additional Remarks          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Additional Remarks}
-For the challenge we assume a simplified flat earth model for mapping of coordinates to cells in the queries -- see Section~\ref{sec:data}. It can be assumed that a distance of 500 meter south corresponds to a change of 0.004491556 degrees in the coordinate system. For moving 500 meters east one can assume a change of 0.005986 degrees in the coordinate system.
 
-\section{Discussion of Challenges}
-The queries of the DEBS 2015 Grand Challenge were designed along the problem of processing of spatio-temporal data in an event-driven manner~\cite{peuquet1995event, mamoulis2004mining, mokbel2004sina}.  Both queries use geo-spatial grids to define the events of interest. Both grids have high resolution resulting in potentially high complexity for the query evaluation. For the first query, one must keep track of routes between grid cells to identify the current most frequent routes. For the seconds query, one must keep track of taxis that are assumed to be in a given grid cell to determine the cell profitability. Both queries rely on a sliding window operator, causing the need to continuously evaluate the query results.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% License                     %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{License}
+All solutions submitted to the DEBS 2016 Grand Challenge are open source under the BSD license: \url{https://opensource.org/licenses/BSD-3-Clause}. A solution incorporates concepts, queries, and code developed for the purpose of solving the Grand Challenge. If a solution is developed within the context of, is built on top of, or is using an existing system or solution which is licensed under a different license than BSD, then such an existing solution or system maintains its existing license.
 
-Additional technical challenge for both queries is the online computation of a top-k list~\cite{ilyas2008survey}. Query specification requires, that results must be updated only when the top-k results (most frequent routes or profitable cells) change. This poses the challenge to efficiently maintain a top-k list over a long list of continuously changing values, i.e., route frequency and profitability.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Acknowledgements            %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Acknowledgements}
+The DEBS Grand Challenge Organizing Committee would like to explicitly thank WSO2 (\url{http://wso2.com}) for sponsoring the DEBS 2016 Grand Challenge prize and the LDBC Council (\url{http://www.ldbcouncil.org}) for their help in preparing the test data set.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% References                  %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{plain}
-\bibliography{debsgc2015}
+\bibliography{debsgc2016}
 
 %\balancecolumns
 
