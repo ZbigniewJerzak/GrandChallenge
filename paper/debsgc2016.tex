@@ -7,6 +7,7 @@
 \usepackage{graphicx}
 \usepackage[table]{xcolor}
 \usepackage{microtype}
+\usepackage{todonotes}
 
 \clubpenalty=10000
 \widowpenalty=10000
@@ -312,7 +313,9 @@ Results must be sorted by their timestamp ($ts$) field. For updates caused by a 
 
 Please note that furthermore, input tuples with the same time stamp must be processed in the order of arrival. For example: if a post $A$ expires at time $X$ and another post $B$ arrives at time $X$, followed by a comment $C$ (for post $A$) arriving at the same time $X$, then the post $A$ will expire. The reason for this is that post $B$ will be processed before comment $C$. Processing of post $B$ will trigger the expiration of the old post $A$. The subsequent comment $C$ (for post $A$) will not have a post $A$ to reference.
 
+\todo[inline]{START: Please clarify the following paragraph -- I could not make sense of it, it relates to FAQ Question 6 (Query 1)}
 Specifically, when processing a new input tuple, processing steps should be performed in this order: (1) decrease the score of all previous posts (given the semantics of the query) (2) increase score of post related to the input tuple, (3) decrease score of posts expiring precisely on this timestamp, if any, and (4) discard posts with score equal to zero. Such a post would, thus, survive the transient state. However, a post whose score reached zaero at a timestamp earlier than the current input tuple, will not survive, even if the processing of that timeout happens to be triggered by the current input tuple. 
+\todo[inline]{END: Please clarify the following paragraph -- I could not make sense of it, it relates to FAQ Question 6 (Query 1)}
 
 The character ,,--'' (a minus sign without the quotation marks) should be used for each of the fields (topX\_post\_id, topX\_post\_user, topX\_post\_commenters) of any of the top three positions that has not been defined. The logical time of the query advances based on the timestamps of the input tuples, not the system clock. Listing~\ref{code:query1} shows the example output for the first query.
 
