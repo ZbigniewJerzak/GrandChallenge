@@ -147,16 +147,16 @@ Pending...
 \label{sec:introduction}
 The ACM DEBS 2016 Grand Challenge is the sixth in a series~\cite{jerzak2012debs, mutschler2013debs, jerzak2014debs, jerzak2015debs} of challenges which seek to provide a common ground and uniform evaluation criteria for a competition aimed at both research and industrial event-based systems. The goal of the 2016 DEBS Grand Challenge competition is to evaluate event-based systems for real-time analytics over high volume data streams in the context of graph models.
 
-The underlying scenario addresses the analysis metrics for a dynamic (evolving) social-network graph. Specifically, the 2016 Grand Challenge targets following problems: (1) identification of the posts that currently trigger the most activity in the social network, and (2) identification of large communities that are currently involved in a topic. The corresponding queries require continuous analysis of a dynamic graph under the consideration of multiple streams that reflect updates to the graph.
+The underlying scenario addresses the analysis metrics for a dynamic (evolving) social-network graph. Specifically, the 2016 Grand Challenge targets the following problems: (1) identification of the posts that currently trigger the most activity in the social network, and (2) identification of large communities that are currently involved in a topic. The corresponding queries require continuous analysis of a dynamic graph under the consideration of multiple streams that reflect updates to the graph.
 
-The data for the DEBS 2016 Grand Challenge is based on the dataset provided together with the LDBC Social Network Benchmark~\cite{erling2015social}. DEBS 2016 Grand Challenge takes up the general scenario from the 2014 SIGMOD Programming Contest~\cite{DBLP:conf/sigmod/2014}, however, in contrasts to the SIGMOD contest, it explicitly focuses on processing streaming data and thus dynamic graphs. Details about the data, queries for the Grand Challenge, and information about evaluation are provided below.
+The data for the DEBS 2016 Grand Challenge is based on the dataset provided together with the LDBC Social Network Benchmark~\cite{erling2015social}. DEBS 2016 Grand Challenge takes up the general scenario from the 2014 SIGMOD Programming Contest~\cite{DBLP:conf/sigmod/2014}, however, in contrast to the SIGMOD contest, it explicitly focuses on processing streaming data and thus dynamic graphs. Details about the data, queries for the Grand Challenge, and information about evaluation are provided below.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Data                       %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Data}
 \label{sec:data}
-The data for the 2016 Grand Challenge is organized in four separate streams, each provided as a text file. The first input stream indicates when two users enter a "friendship" relationship -- see Table~\ref{table:friend} and Listing~\ref{code:friend}. The first input stream file name is $friendships.dat$.
+The data for the 2016 Grand Challenge is organized in four separate streams, each provided as a text file. The first input stream indicates when two users enter a ``friendship" relationship -- see Table~\ref{table:friend} and Listing~\ref{code:friend}. The first input stream file name is $friendships.dat$.
 
 \definecolor{lgray}{gray}{0.94}
 \definecolor{llgray}{gray}{0.99}
@@ -170,8 +170,8 @@ The data for the 2016 Grand Challenge is organized in four separate streams, eac
 		Attribute		&	 Description\\
 		\midrule
 		ts			&	timestamp indicating when a friendship was established\\[2ex]
-		user\_id\_1	&	id of one of the users\\[2ex]
-		user\_id\_2	&	id of the other user\\[2ex]		
+		user\_id\_1	&	id of the first user\\[2ex]
+		user\_id\_2	&	id of the second user\\[2ex]		
 		\bottomrule 
 	\end{tabular}
 	\label{table:friend}
@@ -187,7 +187,7 @@ ZZZ
 PLEASE ADD ACTUAL DATA HERE
 \end{lstlisting}	
 
-The second input stream indicates when a users creates a new post -- see Table~\ref{table:post} and Listing~\ref{code:post}. The second input stream file name is $posts.dat$.
+The second input stream indicates when a user creates a new post -- see Table~\ref{table:post} and Listing~\ref{code:post}. The second input stream file name is $posts.dat$.
 
 \rowcolors{1}{lgray}{llgray}
 \begin{table}[ht]
@@ -217,7 +217,7 @@ ZZZ
 PLEASE ADD ACTUAL DATA HERE
 \end{lstlisting}
 
-The third input stream indicates when a users commnets on a post -- see Table~\ref{table:comment} and Listing~\ref{code:comment}. The third input stream file name is $comments.dat$.
+The third input stream indicates when a user comments on a post -- see Table~\ref{table:comment} and Listing~\ref{code:comment}. The third input stream file name is $comments.dat$.
 
 \rowcolors{1}{lgray}{llgray}
 \begin{table}[ht]
@@ -277,7 +277,7 @@ ZZZ
 PLEASE ADD ACTUAL DATA HERE
 \end{lstlisting}
 
-Each of the data files is sorted chronologically based on the timestamp ($ts$) attribute. Please note that the logical time of the processing engine is advanced through the timestamps in the respective tuples in the input streams. Specifically, the logical clocks of different queries may be advancing independently from each other. Input tuples with the same time stamp must be processed in the order of arrival.
+Each of the data files is sorted chronologically based on the timestamp ($ts$) attribute. Please note that the logical time of the processing engine is advanced through the timestamps in the respective tuples in the input streams. Specifically, the logical clocks of different queries may be advancing independently from each other. Input tuples with the same timestamp must be processed in the order of arrival.
 
 
 
@@ -288,7 +288,7 @@ Each of the data files is sorted chronologically based on the timestamp ($ts$) a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Three Top Scoring Posts Query}
 \label{sec:query1}
-The goal of the first query is to compute the top three scoring active posts, producing an updated result every time the list changes. The total score of an active post $P$ is computed as the sum of its own score plus the score of all its related comments. Active posts having the same total score should be ranked based on their timestamps -- in descending order. And if their timestamps are also identical, they should be ranked based on the timestamps of their last received related comments -- in descending order. A comment $C$ is related to a post $P$ if it is a direct reply to $P$ or if the chain of $C$'s preceding messages links back to $P$.
+The goal of the first query is to compute the top three scoring active posts, producing an updated result every time the list changes. The total score of an active post $P$ is computed as the sum of its own score plus the score of all its related comments. Active posts having the same total score should be ranked based on their timestamps -- in descending order. If their timestamps are also identical, they should be ranked based on the timestamps of their last received related comments -- in descending order. A comment $C$ is related to a post $P$ if it is a direct reply to $P$ or if the chain of $C$'s preceding messages links back to $P$.
 
 Each new post has an initial own score of 10 which decreases by 1 each time another 24 hours elapse since the post's creation. Each new comment's score is also initially set to 10 and decreases by 1 in the same way, i.e., every 24 hours since the comment's creation. Both post and comment scores are non-negative numbers, that is, they cannot drop below zero. A post is considered no longer active (that is, no longer part of the present and future analysis) as soon as its total score reaches zero, even if it receives additional comments in the future. The output format for the result stream is shown in Table~\ref{table:query1}. 
 
@@ -311,13 +311,13 @@ Each new post has an initial own score of 10 which decreases by 1 each time anot
 
 Results must be sorted by their timestamp ($ts$) field. For updates caused by a timeout event, e.g., a post's score dropping every 24 hours, $ts$ is the logical time of the event's generation, plus the logical time duration of the time window. For example, if a comment's expiration should produce some output at logical time 10:00, the logical clock goes past 10:00 only once the first tuple with a later timestamp is processed.
 
-Please note that furthermore, input tuples with the same time stamp must be processed in the order of arrival. For example: if a post $A$ expires at time $X$ and another post $B$ arrives at time $X$, followed by a comment $C$ (for post $A$) arriving at the same time $X$, then the post $A$ will expire. The reason for this is that post $B$ will be processed before comment $C$. Processing of post $B$ will trigger the expiration of the old post $A$. The subsequent comment $C$ (for post $A$) will not have a post $A$ to reference.
+Please note that furthermore, input tuples with the same timestamp must be processed in the order of arrival. For example: if a post $A$ expires at time $X$ and another post $B$ arrives at time $X$, followed by a comment $C$ (for post $A$) arriving at the same time $X$, then the post $A$ will expire. The reason for this is that post $B$ will be processed before comment $C$. Processing of post $B$ will trigger the expiration of the old post $A$. The subsequent comment $C$ (for post $A$) will not have a post $A$ to reference.
 
 \todo[inline]{START: Please clarify the following paragraph -- I could not make sense of it, it relates to FAQ Question 6 (Query 1)}
-Specifically, when processing a new input tuple, processing steps should be performed in this order: (1) decrease the score of all previous posts (given the semantics of the query) (2) increase score of post related to the input tuple, (3) decrease score of posts expiring precisely on this timestamp, if any, and (4) discard posts with score equal to zero. Such a post would, thus, survive the transient state. However, a post whose score reached zaero at a timestamp earlier than the current input tuple, will not survive, even if the processing of that timeout happens to be triggered by the current input tuple. 
+Specifically, when processing a new input tuple, processing steps should be performed in this order: (1) decrease the score of all the previous posts (given the semantics of the query) (2) increase the score of the post related to the input tuple, (3) decrease score of posts expiring precisely on this timestamp, if any, and (4) discard posts with score equal to zero. Such a post would, thus, survive the transient state. However, a post whose score reached zaero at a timestamp earlier than the current input tuple, will not survive, even if the processing of that timeout happens to be triggered by the current input tuple. 
 \todo[inline]{END: Please clarify the following paragraph -- I could not make sense of it, it relates to FAQ Question 6 (Query 1)}
 
-The character ,,--'' (a minus sign without the quotation marks) should be used for each of the fields (topX\_post\_id, topX\_post\_user, topX\_post\_commenters) of any of the top three positions that has not been defined. The logical time of the query advances based on the timestamps of the input tuples, not the system clock. Listing~\ref{code:query1} shows the example output for the first query.
+The character ``--" (a minus sign without the quotation marks) should be used for each of the fields (topX\_post\_id, topX\_post\_user, topX\_post\_commenters) of any of the top three positions that have not been defined. The logical time of the query advances based on the timestamps of the input tuples, not the system clock. Listing~\ref{code:query1} shows the example output for the first query.
 
 \begin{lstlisting}[float=ht,caption={Output example for the three top scoring posts query},label={code:query1}]
 2010-09-19 12:33:01.923+0000,/*@\\@*/  25769805561,Karl Fischer,115,10,/*@\\@*/  25769805933,Chong Liu,83,4,/*@\\@*/  -,-,-,-
@@ -325,7 +325,7 @@ The character ,,--'' (a minus sign without the quotation marks) should be used f
 2010-12-27 22:11:54.953+0000,/*@\\@*/  42949673675,Anson Chen,127,12,/*@\\@*/  42949673684,Yahya Abdallahi,69,8,/*@\\@*/  42949674571,Alim Guliyev,10,0
 \end{lstlisting}
 
-An update to the result stream must be produced whenever any of the top three comments changes. Specifically, if any of the scores changes, but the comments remain the same, no output must be produced. When the end of the input stream is reached (defined as EOF value) all outstanding tuples (in the window) for each query must be processed and results must be output. 
+An update to the result stream must be produced whenever any of the top three posts' ranking changes. Specifically, if any of the scores changes, but the posts' ranking remains the same, no output must be produced. When the end of the input stream is reached (defined as EOF value) all outstanding tuples (in the window) must be processed and results must be output. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Query 2                     %%
@@ -334,7 +334,7 @@ An update to the result stream must be produced whenever any of the top three co
 \label{sec:query2}
 The second query addresses the change of interests with large communities. This query represents a version of query type 2 from the 2014 SIGMOD Programming contest. Unlike in the SIGMOD problem, the version for the DEBS Grand Challenge focuses on the dynamic change of query results over time, i.e., calls for a continuous evaluation of the results. 
 
-The goal of the query is given an integer $k$ and a duration $d$ (in seconds), to find the $k$ comments with the largest range. A range of a comment is defined as the size of the largest connected component in the graph defined by:  
+The goal of the query, given an integer $k$ and a duration $d$ (in seconds), is to find the $k$ comments with the largest range. A range of a comment is defined as the size of the largest connected component in the graph defined by:  
 \begin{enumerate}
 		\item users who have liked that comment -- see files $likes.dat$ and $comments.dat$
 		\item the comment was created not more than $d$ seconds ago
@@ -342,7 +342,7 @@ The goal of the query is given an integer $k$ and a duration $d$ (in seconds), t
 \end{enumerate}	
 Specifically, the size of a component is determined by group members who: (1) all like the comment in question, (2) are all friends with each other, i.e., they form a clique.
 
-The output of the second query includes a single timestamp $ts$ and exactly $k$ strings per line. The timestamp and the strings should be separated by commas. The $k$ strings represent comments, ordered by range from largest to smallest, with ties broken by ascending lexicographical order. The $k$ strings and the corresponding timestamp must be printed only when an input event triggers a change of the output. If less than $k$ strings can be determined, the character ,,--'' (a minus sign without the quotation marks) should be printed in place of each missing string. The output format for the result stream is shown in Table~\ref{table:query2}. 
+The output of the second query includes a single timestamp $ts$ and exactly $k$ strings per line. The timestamp and the strings should be separated by commas. The $k$ strings represent comments, ordered by range from largest to smallest, with ties broken by ascending lexicographical order. The $k$ strings and the corresponding timestamp must be printed only when an input event triggers a change of the output. If less than $k$ strings can be determined, the character ``--" (a minus sign without the quotation marks) should be printed in place of each missing string. The output format for the result stream is shown in Table~\ref{table:query2}. 
 
 \rowcolors{1}{lgray}{llgray}
 \begin{table}[ht]
