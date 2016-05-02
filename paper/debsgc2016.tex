@@ -130,7 +130,7 @@ pass,% keep layout unchanged
 \maketitle
 
 \begin{abstract}
-The DEBS Grand Challenge is a series of challenges which address problems in event stream processing. The focus of the Grand Challenge in 2016 is on processing data streams that originate from social networks. Hence, the data represent an evolving graph structure. With this challenge we take up the general scenario and data source from the 2014 SIGMOD contest. However, in contrasts to the SIGMOD contest, the DEBS grand challenge explicitly focuses on continuous processing of streaming data and thus dynamic changes in graphs. This paper describes the specifics of the data streams and continuous queries that define the DEBS Grand Challenge 2016.
+The DEBS Grand Challenge is a series of challenges which address problems in event stream processing. The focus of the Grand Challenge in 2016 is on processing of data streams that originate from social networks. Hence, the data represents an evolving graph structure. With this challenge we take up the general scenario and data source from the 2014 SIGMOD contest. However, in contrasts to the SIGMOD contest, the DEBS grand challenge explicitly focuses on continuous processing of streaming data and thus dynamic changes in graphs. This paper describes the specifics of the data streams and continuous queries that define the DEBS Grand Challenge 2016.
 \end{abstract}
 
 
@@ -181,10 +181,9 @@ The data for the 2016 Grand Challenge is organized in four separate streams, eac
 
 \lstset{}
 \begin{lstlisting}[float=ht,caption={First line from the $friendships.dat$ file -- one attribute per line of listing},label={code:friend}]
-XXX
-YYY
-ZZZ
-PLEASE ADD ACTUAL DATA HERE
+2010-02-04T18:17:17.223+0000
+974
+37759
 \end{lstlisting}	
 
 The second input stream indicates when a user creates a new post -- see Table~\ref{table:post} and Listing~\ref{code:post}. The second input stream file name is $posts.dat$.
@@ -207,14 +206,13 @@ The second input stream indicates when a user creates a new post -- see Table~\r
 	\label{table:post}
 \end{table}
 
-
-
 \lstset{}
 \begin{lstlisting}[float=ht,caption={First line from the $posts.dat$ file -- one attribute per line of listing},label={code:post}]
-XXX
-YYY
-ZZZ
-PLEASE ADD ACTUAL DATA HERE
+2010-02-01T16:02:09.569+0000
+59182907
+10935
+photo59182907.jpg
+Ibrahim Simsek
 \end{lstlisting}
 
 The third input stream indicates when a user comments on a post -- see Table~\ref{table:comment} and Listing~\ref{code:comment}. The third input stream file name is $comments.dat$.
@@ -232,21 +230,22 @@ The third input stream indicates when a user comments on a post -- see Table~\re
 		user\_id	&	unique id of the user who created the comment\\[2ex]		
 		comment		& 	string containing the comment's content\\[2ex]		
 		user		&   string containing the user name of the comment creator\\[2ex]
-		comment\_replied		&   id of the comment being commented (-1 if this is a comment to a post)\\[2ex]
-		post\_commented		&   id of the post being commented (-1 if this is a comment to a comment)\\[2ex]
+		comment\_replied		&   id of the comment being commented (\textit{empty} if this is a comment to a post)\\[2ex]
+		post\_commented		&   id of the post being commented (\textit{empty} if this is a comment to a comment)\\[2ex]
 		\bottomrule 
 	\end{tabular}
 	\label{table:comment}
 \end{table}
 
-
-
 \lstset{}
 \begin{lstlisting}[float=ht,caption={First line from the $comments.dat$ file -- one attribute per line of listing},label={code:comment}]
-XXX
-YYY
-ZZZ
-PLEASE ADD ACTUAL DATA HERE
+2010-02-05T18:57:58.039+0000
+61043315
+34515
+fine
+Chico Machado
+/*@\textit{empty}@*/
+61043313
 \end{lstlisting}
 
 The fourth input stream indicates when a users likes a comment -- see Table~\ref{table:like} and Listing~\ref{code:like}. The fourth input stream file name is $likes.dat$.
@@ -271,10 +270,9 @@ The fourth input stream indicates when a users likes a comment -- see Table~\ref
 
 \lstset{}
 \begin{lstlisting}[float=ht,caption={First line from the $comments.dat$ file -- one attribute per line of listing},label={code:like}]
-XXX
-YYY
-ZZZ
-PLEASE ADD ACTUAL DATA HERE
+2010-02-14T04:38:52.233+0000
+38501
+51058270
 \end{lstlisting}
 
 Each of the data files is sorted chronologically based on the timestamp ($ts$) attribute. Please note that the logical time of the processing engine is advanced through the timestamps in the respective tuples in the input streams. Specifically, the logical clocks of different queries may be advancing independently from each other. Input tuples with the same timestamp must be processed in the order of arrival.
@@ -313,9 +311,8 @@ Results must be sorted by their timestamp ($ts$) field. For updates caused by a 
 
 Please note that furthermore, input tuples with the same timestamp must be processed in the order of arrival. For example: if a post $A$ expires at time $X$ and another post $B$ arrives at time $X$, followed by a comment $C$ (for post $A$) arriving at the same time $X$, then the post $A$ will expire. The reason for this is that post $B$ will be processed before comment $C$. Processing of post $B$ will trigger the expiration of the old post $A$. The subsequent comment $C$ (for post $A$) will not have a post $A$ to reference.
 
-\todo[inline]{START: Please clarify the following paragraph -- I could not make sense of it, it relates to FAQ Question 6 (Query 1)}
-Specifically, when processing a new input tuple, processing steps should be performed in this order: (1) decrease the score of all the previous posts (given the semantics of the query) (2) increase the score of the post related to the input tuple, (3) decrease score of posts expiring precisely on this timestamp, if any, and (4) discard posts with score equal to zero. Such a post would, thus, survive the transient state. However, a post whose score reached zaero at a timestamp earlier than the current input tuple, will not survive, even if the processing of that timeout happens to be triggered by the current input tuple. 
-\todo[inline]{END: Please clarify the following paragraph -- I could not make sense of it, it relates to FAQ Question 6 (Query 1)}
+If a comment $C$ is received for post $A$ at time $X$, being $X$ also the expiration time for $A$ (the time when $A$'s score reaches 0), then $A$ will survive the transient state and its score will be increased by $C$. This is because, when processing a new input tuple, processing steps should be performed in this order: (1) decrease the score of all the previous posts (2) increase the score of the post related to the input tuple, (3) decrease the score of posts expiring precisely on this timestamp, if any, and (4) discard the posts with score equal to zero. It should be noticed, nevertheless, that a post whose score reached zero at a timestamp earlier than the current input tuple will not survive the transient state.
+%, even if the processing of that timeout happens to be triggered by the current input tuple. 
 
 The character ``--" (a minus sign without the quotation marks) should be used for each of the fields (topX\_post\_id, topX\_post\_user, topX\_post\_commenters) of any of the top three positions that have not been defined. The logical time of the query advances based on the timestamps of the input tuples, not the system clock. Listing~\ref{code:query1} shows the example output for the first query.
 
@@ -364,10 +361,10 @@ The field $ts$ corresponds to the timestamp of the input data item that triggere
 Listing~\ref{code:query2} shows the example output for the first query with a $k$ value equal to three. 
 
 \begin{lstlisting}[float=ht,caption={Output example for the community interest query},label={code:query2}]
-2010-10-28T05:01:31.022+0000,/*@\\@*/  I love strawberries,/*@\\@*/  -,/*@\\@*/  -
-2010-10-28T05:01:31.024+0000,/*@\\@*/  I love strawberries,/*@\\@*/  what a day!,/*@\\@*/  -
-2010-10-28T05:01:31.027+0000,/*@\\@*/  I love strawberries,/*@\\@*/  what a day!,/*@\\@*/  well done
-2010-10-28T05:01:31.032+0000,/*@\\@*/  what a day!,/*@\\@*/  I love strawberries,/*@\\@*/  well done
+2010-10-28T05:01:31.022+0000,/*@\\@*/  I love strawberries, -, -
+2010-10-28T05:01:31.024+0000,/*@\\@*/  I love strawberries,/*@\\@*/  what a day!, -
+2010-10-28T05:01:31.027+0000,/*@\\@*/  I love strawberries,/*@\\@*/  what a day!, well done
+2010-10-28T05:01:31.032+0000,/*@\\@*/  what a day!, I love strawberries,/*@\\@*/ well done
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
