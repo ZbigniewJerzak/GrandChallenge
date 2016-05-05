@@ -314,12 +314,12 @@ Please note that furthermore, input tuples with the same timestamp must be proce
 If a comment $C$ is received for post $A$ at time $X$, being $X$ also the expiration time for $A$ (the time when $A$'s score reaches 0), then $A$ will survive the transient state and its score will be increased by $C$. This is because, when processing a new input tuple, processing steps should be performed in this order: (1) decrease the score of all the previous posts (2) increase the score of the post related to the input tuple, (3) decrease the score of posts expiring precisely on this timestamp, if any, and (4) discard the posts with score equal to zero. It should be noticed, nevertheless, that a post whose score reached zero at a timestamp earlier than the current input tuple will not survive the transient state.
 %, even if the processing of that timeout happens to be triggered by the current input tuple. 
 
-The character ``--" (a minus sign without the quotation marks) should be used for each of the fields (topX\_post\_id, topX\_post\_user, topX\_post\_commenters) of any of the top three positions that have not been defined. The logical time of the query advances based on the timestamps of the input tuples, not the system clock. Listing~\ref{code:query1} shows the example output for the first query.
+The character ``--" (a minus sign without the quotation marks) should be used for each of the fields (topX\_post\_id, topX\_post\_user, topX\_post\_commenters) of any of the top three positions that have not been defined. The logical time of the query advances based on the timestamps of the input tuples, not the system clock. Listing~\ref{code:query1} shows sample output tuples for the first query.
 
 \begin{lstlisting}[float=ht,caption={Output example for the three top scoring posts query},label={code:query1}]
-2010-09-19 12:33:01.923+0000,/*@\\@*/  25769805561,Karl Fischer,115,10,/*@\\@*/  25769805933,Chong Liu,83,4,/*@\\@*/  -,-,-,-
-2010-10-09 21:55:24.943+0000,/*@\\@*/  34359739095,Karl Fischer,58,7,/*@\\@*/  34359740594,Paul Becker,40,2,/*@\\@*/  34359740220,Chong Zhang,10,0
-2010-12-27 22:11:54.953+0000,/*@\\@*/  42949673675,Anson Chen,127,12,/*@\\@*/  42949673684,Yahya Abdallahi,69,8,/*@\\@*/  42949674571,Alim Guliyev,10,0
+2010-02-14T18:14:14.875+0000,/*@\\@*/37343435,Heinz Frank,208,2,/*@\\@*/9899883,Atef Ali,198,1,/*@\\@*/51055853,Jie Chen,198,2
+2010-02-25T09:58:06.952+0000,/*@\\@*/45852079,Mwamba Lita,175,1,/*@\\@*/28821374,Cheng Yang,170,1,/*@\\@*/34185650,Cesar Loan,167,1
+2010-03-10T06:40:06.437+0000,/*@\\@*/63211127,Jie Zhang,206,2,/*@\\@*/43296575,Armand Ferrer,200,6,/*@\\@*/10366197,Chen Wang,192,5
 \end{lstlisting}
 
 An update to the result stream must be produced whenever any of the top three posts' ranking changes. Specifically, if any of the scores changes, but the posts' ranking remains the same, no output must be produced. When the end of the input stream is reached (defined as EOF value) all outstanding tuples (in the window) must be processed and results must be output. 
@@ -358,13 +358,12 @@ The output of the second query includes a single timestamp $ts$ and exactly $k$ 
 
 The field $ts$ corresponds to the timestamp of the input data item that triggered an output update. For instance, a new friendship relation may change the size of a community with a shared interest and hence may change the $k$ strings. The timestamp of the event denoting the added friendship relation is then the timestamp $ts$ for that line's output. Also, the output must be updated when the results change due to the progress of time, e.g., when a comment is older that $d$. Specifically, if the update is triggered by an event leaving a time window at $t2$, i.e., $t2$ $=$ timestamp of the event $+$ window size, the timestamp for the update is $t2$. As in the first query (see Section~\ref{sec:query1}), timestamps refer to the logical time of the input data streams, rather than on the system clock.
 
-Listing~\ref{code:query2} shows the example output for the first query with a $k$ value equal to three. 
+Listing~\ref{code:query2} shows sample output tuples for the first query with a $k$ value equal to three. 
 
 \begin{lstlisting}[float=ht,caption={Output example for the community interest query},label={code:query2}]
-2010-10-28T05:01:31.022+0000,/*@\\@*/  I love strawberries, -, -
-2010-10-28T05:01:31.024+0000,/*@\\@*/  I love strawberries,/*@\\@*/  what a day!, -
-2010-10-28T05:01:31.027+0000,/*@\\@*/  I love strawberries,/*@\\@*/  what a day!, well done
-2010-10-28T05:01:31.032+0000,/*@\\@*/  what a day!, I love strawberries,/*@\\@*/ well done
+2014-03-08T22:24:36.090+0000,/*@\\@*/About Frank Zappa, jazz /*@[...]@*/,/*@\\@*/About Albert, Prince Consort /*@[...]@*/,/*@\\@*/About Henry II of England /*@[...]@*/
+2010-05-23T18:14:04.078+0000,/*@\\@*/About Angola,  /*@[...]@*/,/*@\\@*/About Alejandro Falla,  /*@[...]@*/,/*@\\@*/About William Ewart Gladstone, /*@[...]@*/
+2014-05-28T15:33:13.487+0000,/*@\\@*/About Paul Hindemith, mith /*@[...]@*/,/*@\\@*/About Peter Hain, who has /*@[...]@*/,/*@\\@*/About Michael Jackson, /*@[...]@*/
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -380,6 +379,7 @@ The final ranking is determined by a score that is the sum of the rank for execu
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% License                     %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
 \section{License}
 All solutions submitted to the DEBS 2016 Grand Challenge are open source under the BSD license: \url{https://opensource.org/licenses/BSD-3-Clause}. A solution incorporates concepts, queries, and code developed for the purpose of solving the Grand Challenge. If a solution is developed within the context of, is built on top of, or is using an existing system or solution which is licensed under a different license than BSD, then such an existing solution or system maintains its existing license.
 
